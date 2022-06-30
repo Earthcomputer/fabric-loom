@@ -27,9 +27,11 @@ package net.fabricmc.loom.util;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.zip.GZIPInputStream;
 
 import javax.annotation.Nullable;
 
@@ -78,7 +80,11 @@ public class HashedDownloadUtil {
 		}
 
 		try { // Try download to the output
-			FileUtils.copyInputStreamToFile(connection.getInputStream(), to);
+			InputStream stream = connection.getInputStream();
+			if ("gzip".equals(connection.getContentEncoding())) {
+				stream = new GZIPInputStream(stream);
+			}
+			FileUtils.copyInputStreamToFile(stream, to);
 		} catch (IOException e) {
 			delete(to); // Probably isn't good if it fails to copy/save
 			throw e;
